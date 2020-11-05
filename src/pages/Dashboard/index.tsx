@@ -27,6 +27,7 @@ import {
   FoodDescription,
   FoodPricing,
 } from './styles';
+import FoodDetails from '../FoodDetails';
 
 interface Food {
   id: number;
@@ -35,6 +36,7 @@ interface Food {
   price: number;
   thumbnail_url: string;
   formattedPrice: string;
+  category: number;
 }
 
 interface Category {
@@ -45,6 +47,7 @@ interface Category {
 
 const Dashboard: React.FC = () => {
   const [foods, setFoods] = useState<Food[]>([]);
+  const [allFoods, setAllFoods] = useState<Food[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<
     number | undefined
@@ -54,27 +57,41 @@ const Dashboard: React.FC = () => {
   const navigation = useNavigation();
 
   async function handleNavigate(id: number): Promise<void> {
-    // Navigate do ProductDetails page
+    navigation.navigate('FoodDetails', {
+      id,
+    });
   }
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // Load Foods from API
+      const response = await api.get('foods');
+
+      setFoods(response.data);
+      setAllFoods(response.data);
     }
 
     loadFoods();
-  }, [selectedCategory, searchValue]);
+  }, [setFoods, setAllFoods]);
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
-      // Load categories from API
+      const response = await api.get('categories');
+
+      setCategories(response.data);
     }
 
     loadCategories();
   }, []);
 
   function handleSelectCategory(id: number): void {
-    // Select / deselect category
+    if (!selectedCategory) {
+      setFoods(allFoods.filter(food => food.category === id));
+      setSelectedCategory(id);
+    }
+    if (selectedCategory) {
+      setSelectedCategory(undefined);
+      setFoods(allFoods);
+    }
   }
 
   return (

@@ -73,10 +73,16 @@ const FoodDetails: React.FC = () => {
 
   useEffect(() => {
     async function loadFood(): Promise<void> {
-      // Load a specific food with extras based on routeParams id
-    }
+      const response = await api.get('/foods');
+      const allFoods: Food[] = response.data;
 
-    loadFood();
+      const index = allFoods.findIndex(food => food.id === routeParams.id);
+      const foodDetails = allFoods[index];
+
+      setFood(foodDetails);
+
+      loadFood();
+    }
   }, [routeParams]);
 
   function handleIncrementExtra(id: number): void {
