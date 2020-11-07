@@ -47,7 +47,6 @@ interface Category {
 
 const Dashboard: React.FC = () => {
   const [foods, setFoods] = useState<Food[]>([]);
-  const [allFoods, setAllFoods] = useState<Food[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<
     number | undefined
@@ -64,14 +63,22 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      const response = await api.get('foods');
+      const response = await api.get('foods', {
+        params: {
+          category_like: selectedCategory,
+          name_like: searchValue,
+        },
+      });
 
-      setFoods(response.data);
-      setAllFoods(response.data);
+      const formattedFoods = response.data.map((item: Food) => ({
+        ...item,
+        formattedPrice: formatValue(item.price),
+      }));
+
+      setFoods(formattedFoods);
     }
-
     loadFoods();
-  }, [setFoods, setAllFoods]);
+  }, [searchValue, selectedCategory]);
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
@@ -84,13 +91,10 @@ const Dashboard: React.FC = () => {
   }, []);
 
   function handleSelectCategory(id: number): void {
-    if (!selectedCategory) {
-      setFoods(allFoods.filter(food => food.category === id));
-      setSelectedCategory(id);
-    }
-    if (selectedCategory) {
+    if (selectedCategory === id) {
       setSelectedCategory(undefined);
-      setFoods(allFoods);
+    } else {
+      setSelectedCategory(id);
     }
   }
 
